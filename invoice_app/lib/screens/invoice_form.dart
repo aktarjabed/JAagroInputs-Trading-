@@ -10,6 +10,7 @@ import '../models/customer_model.dart';
 import '../services/database_helper.dart';
 import '../services/gst_helper.dart';
 import '../services/customer_service.dart';
+import '../services/invoice_service.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 import 'customer_form.dart';
@@ -27,6 +28,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _db = InvoiceDatabase.instance;
   final _customerService = CustomerService();
+  final _invoiceService = InvoiceService();
 
   final _invoiceNumberController = TextEditingController();
   final _buyerNameController = TextEditingController();
@@ -88,16 +90,18 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     });
   }
 
-  void _generateInvoiceNumber() {
-    final now = DateTime.now();
-    // Added 3-digit random suffix to prevent collision in same second
-    final randomSuffix = (100 + DateTime.now().microsecond % 900).toString();
-    final number = 'INV-${DateFormat('yyyyMMdd-HHmmss').format(now)}-$randomSuffix';
-    _invoiceNumberController.text = number;
+  Future<void> _generateInvoiceNumber() async {
+    final nextNumber = await _invoiceService.getNextInvoiceNumber();
+    if (mounted) {
+      setState(() {
+         _invoiceNumberController.text = nextNumber;
+      });
+    }
   }
 
   void _loadInvoiceData() {
     final invoice = widget.invoice!;
+    // Use existing number if editing
     _invoiceNumberController.text = invoice.invoiceNumber;
     _buyerNameController.text = invoice.buyerName;
     _buyerGSTINController.text = invoice.buyerGSTIN;
