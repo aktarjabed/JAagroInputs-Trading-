@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,  // Incremented version for new field
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -32,6 +32,9 @@ class DatabaseHelper {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE invoices ADD COLUMN customer_gstin TEXT');
       await db.execute('ALTER TABLE invoices ADD COLUMN pdf_path TEXT');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE company_settings ADD COLUMN account_holder TEXT');
     }
   }
 
@@ -96,7 +99,8 @@ class DatabaseHelper {
         email TEXT,
         bank_name TEXT,
         account_number TEXT,
-        ifsc_code TEXT
+        ifsc_code TEXT,
+        account_holder TEXT
       )
     ''');
 
@@ -104,16 +108,32 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_invoice_number ON invoices(invoice_number)');
     await db.execute('CREATE INDEX idx_customer_name ON invoices(customer_name)');
 
+    // Insert REAL company settings from your invoice
     await db.insert('company_settings', {
       'id': 1,
       'company_name': 'JA Agro Inputs & Trading',
-      'address': 'Main Market Road',
-      'city': 'Nagaon',
+      'address': 'Dhanehari II, P.O - Saidpur(Mukam)',
+      'city': 'Cachar',
       'state': 'Assam',
-      'pincode': '782001',
-      'gstin': '18XXXXX0000X1ZX',
-      'phone': '+91-XXXXXXXXXX',
-      'email': 'info@jaagro.com',
+      'pincode': '788013',
+      'gstin': '18CCFPB3144R1Z5',
+      'pan': 'CCFPB3144R',
+      'phone': '8133878179',
+      'email': 'jaagro@example.com',
+      'bank_name': 'State Bank of India',
+      'account_number': '36893269388',
+      'ifsc_code': 'SBIN0001803',
+      'account_holder': 'JA Agro Inputs & Trading',
+    });
+
+    // Insert sample customer from your invoice
+    await db.insert('customers', {
+      'name': 'Ruksana Begum Laskar',
+      'address': 'Neairgram Part II',
+      'city': 'Cachar',
+      'state': 'Assam',
+      'pincode': '788013',
+      'gstin': '',
     });
 
     await _insertDefaultHSN(db);
