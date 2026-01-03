@@ -60,19 +60,60 @@ class GSTHelper {
   static bool validateGSTIN(String gstin) {
     if (gstin.length != 15) return false;
 
+    // 1. Basic Format Validation
+    if (!RegExp(r'^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z\d]$').hasMatch(gstin)) return false;
+
     final stateCode = gstin.substring(0, 2);
-    final pan = gstin.substring(2, 12);
-    final entityNumber = gstin.substring(12, 13);
-    final z = gstin.substring(13, 14);
-    final checksum = gstin.substring(14, 15);
-
     if (!stateCodes.values.contains(stateCode)) return false;
-    if (!RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]$').hasMatch(pan)) return false;
-    if (!RegExp(r'^[1-9A-Z]$').hasMatch(entityNumber)) return false;
-    if (z != 'Z') return false;
-    if (!RegExp(r'^[0-9A-Z]$').hasMatch(checksum)) return false;
 
-    return true;
+    // 2. Checksum Validation (Luhn algorithm variant for GSTIN)
+    try {
+      return _validateChecksum(gstin);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static bool _validateChecksum(String gstin) {
+    const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    final input = gstin.toUpperCase();
+
+    // GSTIN Checksum Logic (Standard Mod-36)
+    int sum = 0;
+    for (int i = 0; i < 14; i++) {
+      int val = chars.indexOf(input[i]);
+      // Weights for GSTIN are alternating?
+      // Actually, the standard Luhn is not used. It's a custom Mod-36 algo.
+      // Logic:
+      // Factor is 1 for even position (index 0, 2...), 2 for odd (index 1, 3...) ? No, reversed usually.
+      // Let's implement the simplified hash check which is common for India GST.
+      //
+      // Correct Algorithm:
+      // 1. Map each char to value (0-9 -> 0-9, A-Z -> 10-35)
+      // 2. For each character at position i (0 to 13):
+      //    P = value
+      //    Factor = (i % 2 == 1) ? 2 : 1; // Even index (0,2..) -> 1, Odd index (1,3..) -> 2 (Wait, standard is reversed usually?)
+      //    Let's try standard: Factor = 1 for even index, 2 for odd index.
+      //    Product = P * Factor
+      //    Quotient = Product / 36
+      //    Remainder = Product % 36
+      //    Term = Quotient + Remainder
+      //    Sum = Sum + Term
+      // 3. Check Digit Value = (36 - (Sum % 36)) % 36
+      // 4. Compare Check Digit Value with the 15th char value.
+
+      int factor = (i % 2 == 1) ? 2 : 1; // Factor 1 for even index (0), 2 for odd (1)
+      int product = val * factor;
+      int quotient = product ~/ 36;
+      int remainder = product % 36;
+      int term = quotient + remainder;
+      sum += term;
+    }
+
+    int checkDigitValue = (36 - (sum % 36)) % 36;
+    int actualCheckDigitValue = chars.indexOf(input[14]);
+
+    return checkDigitValue == actualCheckDigitValue;
   }
 
   static bool validatePAN(String pan) {

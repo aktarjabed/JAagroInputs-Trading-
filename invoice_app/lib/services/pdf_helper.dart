@@ -7,18 +7,24 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../models/invoice_model.dart';
+import '../models/company_settings_model.dart';
+import '../services/settings_service.dart';
 import '../utils/constants.dart';
 
 class PDFHelper {
   static Future<void> generateInvoicePDF(InvoiceModel invoice) async {
     final pdf = pw.Document();
 
+    // Fetch settings for PDF
+    final settingsService = SettingsService();
+    final settings = await settingsService.getSettings();
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (context) => [
-          _buildHeader(invoice),
+          _buildHeader(invoice, settings),
           pw.SizedBox(height: 20),
           _buildBuyerDetails(invoice),
           pw.SizedBox(height: 20),
@@ -26,7 +32,7 @@ class PDFHelper {
           pw.SizedBox(height: 20),
           _buildTotals(invoice),
           pw.SizedBox(height: 20),
-          _buildFooter(invoice),
+          _buildFooter(invoice, settings),
         ],
       ),
     );
@@ -36,7 +42,7 @@ class PDFHelper {
     );
   }
 
-  static pw.Widget _buildHeader(InvoiceModel invoice) {
+  static pw.Widget _buildHeader(InvoiceModel invoice, CompanySettingsModel settings) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -45,20 +51,20 @@ class PDFHelper {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              Constants.companyName,
+              settings.companyName,
               style: pw.TextStyle(
                 fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
             pw.SizedBox(height: 4),
-            pw.Text('GSTIN: ${Constants.companyGSTIN}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('PAN: ${Constants.companyPAN}', style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('GSTIN: ${settings.gstin}', style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('PAN: ${settings.pan}', style: const pw.TextStyle(fontSize: 10)),
             pw.Text(
-              '${Constants.companyAddress}, ${Constants.companyState} - ${Constants.companyPincode}',
+              '${settings.address}, ${settings.state} - ${settings.pincode}',
               style: const pw.TextStyle(fontSize: 10),
             ),
-            pw.Text('Ph: ${Constants.companyPhone}', style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('Ph: ${settings.phone}', style: const pw.TextStyle(fontSize: 10)),
           ],
         ),
         pw.Column(
@@ -210,7 +216,7 @@ class PDFHelper {
     );
   }
 
-  static pw.Widget _buildFooter(InvoiceModel invoice) {
+  static pw.Widget _buildFooter(InvoiceModel invoice, CompanySettingsModel settings) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -234,9 +240,9 @@ class PDFHelper {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text('Bank Details:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                  pw.Text('Bank: ${Constants.bankName}', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('A/C No: ${Constants.bankAccountNumber}', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('IFSC: ${Constants.bankIFSC}', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('Bank: ${settings.bankName}', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('A/C No: ${settings.bankAccountNumber}', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('IFSC: ${settings.bankIFSC}', style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
             ),
@@ -260,7 +266,7 @@ class PDFHelper {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Text('For ${Constants.companyName}',
+                pw.Text('For ${settings.companyName}',
                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                 pw.SizedBox(height: 30),
                 pw.Text('Authorized Signatory', style: const pw.TextStyle(fontSize: 9)),

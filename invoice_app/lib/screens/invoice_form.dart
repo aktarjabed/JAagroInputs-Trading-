@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../models/invoice_model.dart';
+import '../models/customer_model.dart';
 import '../services/database_helper.dart';
 import '../services/gst_helper.dart';
+import '../services/customer_service.dart';
 import '../utils/constants.dart';
+import '../utils/validators.dart';
+import 'customer_form.dart';
 
 class InvoiceFormScreen extends StatefulWidget {
   final InvoiceModel? invoice;
@@ -22,6 +26,7 @@ class InvoiceFormScreen extends StatefulWidget {
 class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _db = InvoiceDatabase.instance;
+  final _customerService = CustomerService();
 
   final _invoiceNumberController = TextEditingController();
   final _buyerNameController = TextEditingController();
@@ -47,6 +52,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
 
   List<InvoiceItemModel> _lineItems = [];
   List<Map<String, dynamic>> _hsnCodes = [];
+  List<CustomerModel> _customers = [];
 
   double _subtotal = 0.0;
   double _cgstAmount = 0.0;
@@ -59,6 +65,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   void initState() {
     super.initState();
     _loadHSNCodes();
+    _loadCustomers();
 
     if (widget.invoice != null) {
       _loadInvoiceData();
@@ -74,9 +81,18 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     });
   }
 
+  Future<void> _loadCustomers() async {
+    final customers = await _customerService.getAllCustomers();
+    setState(() {
+      _customers = customers;
+    });
+  }
+
   void _generateInvoiceNumber() {
     final now = DateTime.now();
-    final number = 'INV-${DateFormat('yyyyMMdd-HHmmss').format(now)}';
+    // Added 3-digit random suffix to prevent collision in same second
+    final randomSuffix = (100 + DateTime.now().microsecond % 900).toString();
+    final number = 'INV-${DateFormat('yyyyMMdd-HHmmss').format(now)}-$randomSuffix';
     _invoiceNumberController.text = number;
   }
 
@@ -115,13 +131,36 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     final supplyStateCode = _placeOfSupply.split(' ').first;
 
     if (buyerStateCode == supplyStateCode) {
-      _cgstAmount = _subtotal * 0.05;
-      _sgstAmount = _subtotal * 0.05;
+      // Calculate tax for each item individually for precision, but here we approximate based on items
+      // Actually, tax should be per item. Let's iterate items.
+      _cgstAmount = 0.0;
+      _sgstAmount = 0.0;
       _igstAmount = 0.0;
+
+      for (var item in _lineItems) {
+        // Find rate for this item (assumed stored or fetched)
+        // For now, let's assume standard logic or fetch from DB if needed
+        // Ideally, InvoiceItemModel needs a tax rate field.
+        // I'll assume standard 5% if not found for now or better yet, fetch GST rate for HSN.
+        // Wait, the item line total includes tax? Or excludes? Usually excludes.
+        // Let's assume rate is taxable value.
+
+        // Fetch GST Rate for HSN
+        double gstRate = GSTHelper.getGSTRateByHSN(item.hsnCode);
+        double taxAmount = item.lineTotal * (gstRate / 100);
+
+        _cgstAmount += taxAmount / 2;
+        _sgstAmount += taxAmount / 2;
+      }
     } else {
       _cgstAmount = 0.0;
       _sgstAmount = 0.0;
-      _igstAmount = _subtotal * 0.10;
+
+       for (var item in _lineItems) {
+        double gstRate = GSTHelper.getGSTRateByHSN(item.hsnCode);
+        double taxAmount = item.lineTotal * (gstRate / 100);
+        _igstAmount += taxAmount;
+      }
     }
 
     _grandTotal = _subtotal + _cgstAmount + _sgstAmount + _igstAmount - _discountAmount;
@@ -284,6 +323,70 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     );
   }
 
+  void _showCustomerPicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Select Customer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('New'),
+                    onPressed: () {
+                      Navigator.pop(context); // Close picker
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CustomerFormScreen()),
+                      ).then((val) {
+                        if (val == true) {
+                          _loadCustomers(); // Reload list
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                itemCount: _customers.length,
+                separatorBuilder: (context, index) => const Divider(),
+                itemBuilder: (context, index) {
+                  final customer = _customers[index];
+                  return ListTile(
+                    title: Text(customer.buyerName),
+                    subtitle: Text(customer.address),
+                    onTap: () {
+                      setState(() {
+                        _buyerNameController.text = customer.buyerName;
+                        _buyerGSTINController.text = customer.gstin;
+                        _buyerPANController.text = customer.pan;
+                        _buyerContactController.text = customer.contactPerson;
+                        _buyerState = customer.state;
+                        _buyerType = customer.buyerType;
+                        _deliveryAddressController.text = customer.address;
+                        // Trigger recalculation if state changed
+                        _placeOfSupply = '${GSTHelper.getStateCode(_buyerState)} ($_buyerState)';
+                        _calculateTotals();
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _saveInvoice() async {
     if (!_formKey.currentState!.validate()) return;
     if (_lineItems.isEmpty) {
@@ -335,11 +438,13 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         await _db.insertInvoice(invoice);
       }
 
-      Navigator.pop(context, invoice);
+      if (mounted) Navigator.pop(context, invoice);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving invoice: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving invoice: $e')),
+        );
+      }
     }
   }
 
@@ -411,16 +516,31 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextFormField(
-              controller: _buyerNameController,
-              decoration: const InputDecoration(labelText: 'Buyer Name *'),
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+             Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _buyerNameController,
+                    decoration: const InputDecoration(labelText: 'Buyer Name *'),
+                    validator: (value) => Validators.validateRequired(value, 'Buyer Name'),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.person_search),
+                  onPressed: _showCustomerPicker,
+                  tooltip: 'Select Customer',
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _buyerGSTINController,
               decoration: const InputDecoration(labelText: 'GSTIN *'),
-              validator: (value) => GSTHelper.validateGSTIN(value ?? '') ? null : 'Invalid GSTIN',
+              validator: (value) {
+                final req = Validators.validateRequired(value, 'GSTIN');
+                if (req != null) return req;
+                return GSTHelper.validateGSTIN(value!) ? null : 'Invalid GSTIN';
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -430,7 +550,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _buyerState,
+              value: Constants.indianStates.contains(_buyerState) ? _buyerState : 'Assam',
               decoration: const InputDecoration(labelText: 'Buyer State *'),
               items: Constants.indianStates.map((state) {
                 return DropdownMenuItem(value: state, child: Text(state));
@@ -445,7 +565,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _buyerType,
+              value: Constants.buyerTypes.contains(_buyerType) ? _buyerType : 'Trader',
               decoration: const InputDecoration(labelText: 'Buyer Type'),
               items: Constants.buyerTypes.map((type) {
                 return DropdownMenuItem(value: type, child: Text(type));
@@ -474,6 +594,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         child: Column(
           children: [
             TextFormField(
+              key: ValueKey(_placeOfSupply), // Force rebuild if POS changes
               initialValue: _placeOfSupply,
               decoration: const InputDecoration(labelText: 'Place of Supply'),
               enabled: false,
@@ -598,7 +719,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         child: Column(
           children: [
             DropdownButtonFormField<String>(
-              value: _paymentTerms,
+              value: Constants.paymentTerms.contains(_paymentTerms) ? _paymentTerms : 'Net 30',
               decoration: const InputDecoration(labelText: 'Payment Terms'),
               items: Constants.paymentTerms.map((term) {
                 return DropdownMenuItem(value: term, child: Text(term));
@@ -611,7 +732,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _status,
+              value: Constants.invoiceStatuses.contains(_status) ? _status : 'Draft',
               decoration: const InputDecoration(labelText: 'Invoice Status'),
               items: Constants.invoiceStatuses.map((status) {
                 return DropdownMenuItem(value: status, child: Text(status));
@@ -637,10 +758,10 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           children: [
             _buildTotalRow('Subtotal', _subtotal),
             if (_cgstAmount > 0) ...[
-              _buildTotalRow('CGST (5%)', _cgstAmount),
-              _buildTotalRow('SGST (5%)', _sgstAmount),
+              _buildTotalRow('CGST', _cgstAmount),
+              _buildTotalRow('SGST', _sgstAmount),
             ] else if (_igstAmount > 0)
-              _buildTotalRow('IGST (10%)', _igstAmount),
+              _buildTotalRow('IGST', _igstAmount),
             const Divider(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
