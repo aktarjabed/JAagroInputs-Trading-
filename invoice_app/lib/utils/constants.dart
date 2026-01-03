@@ -109,7 +109,7 @@ class Constants {
   static const String companyAddress = 'Dhanehari II, P.O - Saidpur Mukam, Cachar';
   static const String companyCity = 'Badarpur';
   static const String companyState = 'Assam';
-  static const String companyPincode = '788102';
+  static const String companyPincode = '788013';
   static const String companyPhone = '8133878179';
   static const String companyEmail = 'jaagro@example.com';
 
