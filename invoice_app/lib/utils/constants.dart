@@ -106,17 +106,17 @@ class Constants {
   static const String companyName = 'JA AGRO INPUTS & TRADING';
   static const String companyGSTIN = '18CCFPB3144R1Z5';
   static const String companyPAN = 'CCFPB3144R';
-  static const String companyAddress = 'Dhanehari II, P.O - Saidpur Mukam, Cachar';
-  static const String companyCity = 'Badarpur';
+  static const String companyAddress = 'Dhanehari II, P.O - Saidpur(Mukam), Cachar';
+  static const String companyCity = 'Silchar';
   static const String companyState = 'Assam';
   static const String companyPincode = '788013';
   static const String companyPhone = '8133878179';
   static const String companyEmail = 'jaagro@example.com';
 
   // Bank Details
-  static const String bankName = 'HDFC Bank';
+  static const String bankName = 'State Bank of India';
   static const String bankAccountNumber = '36893269388';
-  static const String bankIFSC = 'HDFC0000020';
+  static const String bankIFSC = 'SBIN0001803';
 
   // App Settings
   static const String appName = 'JA Agro Invoice';
