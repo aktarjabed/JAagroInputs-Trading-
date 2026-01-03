@@ -78,7 +78,8 @@ class PDFGenerator {
                       pw.Text(company['address']),
                       pw.Text('${company['city']}, ${company['state']} - ${company['pincode']}'),
                       pw.Text('GSTIN: ${company['gstin']}'),
-                      if (company['phone'] != null) pw.Text('Phone: ${company['phone']}'),
+                      if (company['pan'] != null) pw.Text('PAN: ${company['pan']}'),
+                      if (company['phone'] != null) pw.Text('Ph No: ${company['phone']}'),
                       if (company['email'] != null) pw.Text('Email: ${company['email']}'),
                     ],
                   ),
@@ -92,6 +93,7 @@ class PDFGenerator {
                       pw.SizedBox(height: 8),
                       pw.Text('Invoice #: ${invoiceData['invoice_number']}'),
                       pw.Text('Date: ${invoiceData['invoice_date']}'),
+                      pw.Text('Place of Supply: ${invoiceData['customer_state']}'),
                     ],
                   ),
                 ],
@@ -119,9 +121,11 @@ class PDFGenerator {
 
               // Items Table
               pw.Table.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+                cellStyle: const pw.TextStyle(fontSize: 9),
                 cellAlignment: pw.Alignment.centerLeft,
-                headers: ['#', 'Description', 'HSN', 'Qty', 'Rate', 'GST%', 'Amount'],
+                headerAlignment: pw.Alignment.centerLeft,
+                headers: ['Sr', 'Description', 'HSN', 'Qty', 'Unit', 'Rate (₹)', 'GST %', 'Total (₹)'],
                 data: items.asMap().entries.map((entry) {
                   final index = entry.key + 1;
                   final item = entry.value;
@@ -129,10 +133,11 @@ class PDFGenerator {
                     index.toString(),
                     item.description,
                     item.hsnCode,
-                    '${item.quantity} ${item.unit}',
-                    '₹${item.rate.toStringAsFixed(2)}',
+                    item.quantity.toString(),
+                    item.unit,
+                    item.rate.toStringAsFixed(2),
                     '${item.gstRate}%',
-                    '₹${item.total.toStringAsFixed(2)}',
+                    item.total.toStringAsFixed(2),
                   ];
                 }).toList(),
               ),
@@ -146,12 +151,12 @@ class PDFGenerator {
                     width: 300,
                     child: pw.Column(
                       children: [
-                        _buildPDFTotalRow('Vegetables (0% GST)', invoiceData['subtotal_vegetables']),
-                        _buildPDFTotalRow('Other Items', invoiceData['subtotal_fertilizers']),
+                        _buildPDFTotalRow('Taxable Amount (Vegetables - 0%)', invoiceData['subtotal_vegetables']),
+                        _buildPDFTotalRow('Taxable Amount (Other Items)', invoiceData['subtotal_fertilizers']),
                         pw.Divider(),
                         if (!isInterstate) ...[
-                          _buildPDFTotalRow('CGST', invoiceData['cgst']),
-                          _buildPDFTotalRow('SGST', invoiceData['sgst']),
+                          _buildPDFTotalRow('CGST @ ${_getCGSTRate(items)}%', invoiceData['cgst']),
+                          _buildPDFTotalRow('SGST @ ${_getSGSTRate(items)}%', invoiceData['sgst']),
                         ] else
                           _buildPDFTotalRow('IGST', invoiceData['igst']),
                         pw.Divider(thickness: 2),
@@ -165,6 +170,13 @@ class PDFGenerator {
                   ),
                 ],
               ),
+
+              pw.SizedBox(height: 8),
+              pw.Text(
+                'Amount in Words (Rounded): ${_convertToWords(invoiceData['grand_total'])}',
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+
               pw.Spacer(),
 
               // Bank Details
@@ -174,9 +186,11 @@ class PDFGenerator {
                   'Bank Details:',
                   style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
                 ),
+                if (company['account_holder'] != null)
+                  pw.Text('Account Name: ${company['account_holder']}', style: const pw.TextStyle(fontSize: 10)),
                 pw.Text('Bank: ${company['bank_name']}', style: const pw.TextStyle(fontSize: 10)),
                 if (company['account_number'] != null)
-                  pw.Text('Account: ${company['account_number']}', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('A/C No: ${company['account_number']}', style: const pw.TextStyle(fontSize: 10)),
                 if (company['ifsc_code'] != null)
                   pw.Text('IFSC: ${company['ifsc_code']}', style: const pw.TextStyle(fontSize: 10)),
                 pw.SizedBox(height: 8),
@@ -188,9 +202,9 @@ class PDFGenerator {
                 'Terms & Conditions:',
                 style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
               ),
-              pw.Text('1. Payment due within 30 days', style: const pw.TextStyle(fontSize: 9)),
-              pw.Text('2. Goods once sold will not be taken back', style: const pw.TextStyle(fontSize: 9)),
-              pw.Text('3. Subject to Nagaon jurisdiction', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('1. Prices are subject to market fluctuation', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('2. Delivery within 7 days from order', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('3. Payment terms as agreed', style: const pw.TextStyle(fontSize: 9)),
               pw.SizedBox(height: 16),
 
               // Signature
@@ -207,7 +221,7 @@ class PDFGenerator {
                         ),
                         padding: const pw.EdgeInsets.only(top: 4),
                         child: pw.Text(
-                          'Authorized Signature',
+                          'For ${company['company_name']}',
                           style: const pw.TextStyle(fontSize: 10),
                           textAlign: pw.TextAlign.center,
                         ),
@@ -249,5 +263,55 @@ class PDFGenerator {
         ],
       ),
     );
+  }
+
+  static String _getCGSTRate(List<InvoiceItem> items) {
+    final gstItems = items.where((item) => item.gstRate > 0).toList();
+    if (gstItems.isEmpty) return '0';
+    return (gstItems.first.gstRate / 2).toStringAsFixed(1);
+  }
+
+  static String _getSGSTRate(List<InvoiceItem> items) {
+    final gstItems = items.where((item) => item.gstRate > 0).toList();
+    if (gstItems.isEmpty) return '0';
+    return (gstItems.first.gstRate / 2).toStringAsFixed(1);
+  }
+
+  static String _convertToWords(dynamic amount) {
+    final value = (amount is num) ? amount.toDouble() : 0.0;
+    final roundedValue = value.round();
+
+    if (roundedValue == 0) return 'Zero Only';
+
+    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    final teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    String convertLessThanThousand(int num) {
+      if (num == 0) return '';
+      if (num < 10) return ones[num];
+      if (num < 20) return teens[num - 10];
+      if (num < 100) {
+        return '${tens[num ~/ 10]} ${ones[num % 10]}'.trim();
+      }
+      return '${ones[num ~/ 100]} Hundred ${convertLessThanThousand(num % 100)}'.trim();
+    }
+
+    if (roundedValue < 1000) {
+      return 'Rupees ${convertLessThanThousand(roundedValue)} Only';
+    }
+
+    final crore = roundedValue ~/ 10000000;
+    final lakh = (roundedValue % 10000000) ~/ 100000;
+    final thousand = (roundedValue % 100000) ~/ 1000;
+    final remainder = roundedValue % 1000;
+
+    String result = 'Rupees ';
+    if (crore > 0) result += '${convertLessThanThousand(crore)} Crore ';
+    if (lakh > 0) result += '${convertLessThanThousand(lakh)} Lakh ';
+    if (thousand > 0) result += '${convertLessThanThousand(thousand)} Thousand ';
+    if (remainder > 0) result += convertLessThanThousand(remainder);
+
+    return '${result.trim()} Only';
   }
 }

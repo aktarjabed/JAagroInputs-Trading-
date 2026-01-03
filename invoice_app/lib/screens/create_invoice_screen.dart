@@ -532,7 +532,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             ),
           ),
         ],
-      );
+      ),
     );
   }
 }
