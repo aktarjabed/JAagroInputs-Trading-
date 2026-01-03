@@ -23,7 +23,6 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _db = InvoiceDatabase.instance;
 
-  // Controllers
   final _invoiceNumberController = TextEditingController();
   final _buyerNameController = TextEditingController();
   final _buyerGSTINController = TextEditingController();
@@ -36,7 +35,6 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _vehicleController = TextEditingController();
   final _discountController = TextEditingController();
 
-  // Form values
   DateTime _invoiceDate = DateTime.now();
   DateTime? _deliveryDate;
   String _buyerState = 'Assam';
@@ -47,13 +45,9 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   String _paymentTerms = 'Net 30';
   String _status = 'Draft';
 
-  // Line items
   List<InvoiceItemModel> _lineItems = [];
-
-  // HSN codes
   List<Map<String, dynamic>> _hsnCodes = [];
 
-  // Calculations
   double _subtotal = 0.0;
   double _cgstAmount = 0.0;
   double _sgstAmount = 0.0;
@@ -115,28 +109,22 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
 
   void _calculateTotals() {
     _subtotal = _lineItems.fold(0.0, (sum, item) => sum + item.lineTotal);
-
-    // Discount
     _discountAmount = double.tryParse(_discountController.text) ?? 0.0;
 
-    // GST calculation
     final buyerStateCode = GSTHelper.getStateCode(_buyerState);
     final supplyStateCode = _placeOfSupply.split(' ').first;
 
     if (buyerStateCode == supplyStateCode) {
-      // Intrastate - CGST/SGST
-      _cgstAmount = _subtotal * 0.05; // 5%
-      _sgstAmount = _subtotal * 0.05; // 5%
+      _cgstAmount = _subtotal * 0.05;
+      _sgstAmount = _subtotal * 0.05;
       _igstAmount = 0.0;
     } else {
-      // Interstate - IGST
       _cgstAmount = 0.0;
       _sgstAmount = 0.0;
-      _igstAmount = _subtotal * 0.10; // 10%
+      _igstAmount = _subtotal * 0.10;
     }
 
     _grandTotal = _subtotal + _cgstAmount + _sgstAmount + _igstAmount - _discountAmount;
-
     setState(() {});
   }
 
@@ -160,7 +148,6 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // HSN Code dropdown
                 DropdownButtonFormField<String>(
                   value: selectedHSN,
                   decoration: const InputDecoration(labelText: 'HSN Code'),
@@ -183,28 +170,19 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     }
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Product Name (read-only, auto-filled)
                 TextFormField(
                   initialValue: productName,
                   decoration: const InputDecoration(labelText: 'Product Name'),
                   enabled: false,
                 ),
-
                 const SizedBox(height: 16),
-
-                // Category (read-only, auto-filled)
                 TextFormField(
                   initialValue: productCategory,
                   decoration: const InputDecoration(labelText: 'Category'),
                   enabled: false,
                 ),
-
                 const SizedBox(height: 16),
-
-                // Quantity
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Quantity'),
                   keyboardType: TextInputType.number,
@@ -212,10 +190,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     quantity = double.tryParse(value) ?? 0.0;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Unit
                 DropdownButtonFormField<String>(
                   value: unit,
                   decoration: const InputDecoration(labelText: 'Unit'),
@@ -228,10 +203,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     });
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Rate
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Rate per unit (₹)'),
                   keyboardType: TextInputType.number,
@@ -239,20 +211,14 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     rate = double.tryParse(value) ?? 0.0;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Batch Number (Phase 2)
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Batch Number (Optional)'),
                   onChanged: (value) {
                     batchNumber = value.isEmpty ? null : value;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Expiry Date (Phase 2)
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Expiry Date (Optional)',
@@ -262,10 +228,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                     expiryDate = value.isEmpty ? null : value;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Quality Grade (Phase 2)
                 DropdownButtonFormField<String>(
                   value: qualityGrade,
                   decoration: const InputDecoration(labelText: 'Quality Grade (Optional)'),
@@ -398,42 +361,23 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Buyer Details Section
             _buildSectionHeader('Buyer Details'),
             _buildBuyerDetailsSection(),
-
             const SizedBox(height: 24),
-
-            // GST Compliance Section (Phase 1)
             _buildSectionHeader('GST Compliance'),
             _buildGSTComplianceSection(),
-
             const SizedBox(height: 24),
-
-            // Line Items Section
             _buildSectionHeader('Line Items'),
             _buildLineItemsSection(),
-
             const SizedBox(height: 24),
-
-            // Delivery Details Section (Phase 3)
             _buildSectionHeader('Delivery Details (Optional)'),
             _buildDeliveryDetailsSection(),
-
             const SizedBox(height: 24),
-
-            // Payment Section
             _buildSectionHeader('Payment Terms'),
             _buildPaymentSection(),
-
             const SizedBox(height: 24),
-
-            // Totals Section
             _buildTotalsSection(),
-
             const SizedBox(height: 32),
-
-            // Save Button
             ElevatedButton(
               onPressed: _saveInvoice,
               style: ElevatedButton.styleFrom(

@@ -31,7 +31,6 @@ class InvoiceDatabase {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    // Invoices table
     await db.execute('''
       CREATE TABLE invoices (
         id TEXT PRIMARY KEY,
@@ -68,7 +67,6 @@ class InvoiceDatabase {
       )
     ''');
 
-    // Invoice Items table (normalized)
     await db.execute('''
       CREATE TABLE invoice_items (
         id TEXT PRIMARY KEY,
@@ -88,7 +86,6 @@ class InvoiceDatabase {
       )
     ''');
 
-    // HSN Codes table
     await db.execute('''
       CREATE TABLE hsn_codes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +96,6 @@ class InvoiceDatabase {
       )
     ''');
 
-    // Company Settings table
     await db.execute('''
       CREATE TABLE company_settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +114,6 @@ class InvoiceDatabase {
       )
     ''');
 
-    // Buyer Profiles table
     await db.execute('''
       CREATE TABLE buyer_profiles (
         id TEXT PRIMARY KEY,
@@ -138,7 +133,6 @@ class InvoiceDatabase {
       )
     ''');
 
-    // Create indexes
     await db.execute('CREATE INDEX idx_invoice_number ON invoices(invoice_number)');
     await db.execute('CREATE INDEX idx_buyer_gstin ON invoices(buyer_gstin)');
     await db.execute('CREATE INDEX idx_invoice_date ON invoices(date)');
@@ -146,13 +140,11 @@ class InvoiceDatabase {
     await db.execute('CREATE INDEX idx_invoice_items_invoice_id ON invoice_items(invoice_id)');
     await db.execute('CREATE INDEX idx_hsn_code ON hsn_codes(hsn_code)');
 
-    // Seed HSN codes
     await _seedHSNCodes(db);
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Add new columns for Phase 2
       await db.execute('ALTER TABLE invoice_items ADD COLUMN batch_number TEXT');
       await db.execute('ALTER TABLE invoice_items ADD COLUMN expiry_date TEXT');
       await db.execute('ALTER TABLE invoice_items ADD COLUMN quality_grade TEXT');
@@ -160,7 +152,6 @@ class InvoiceDatabase {
     }
 
     if (oldVersion < 3) {
-      // Add buyer profiles table
       await db.execute('''
         CREATE TABLE IF NOT EXISTS buyer_profiles (
           id TEXT PRIMARY KEY,
@@ -184,7 +175,6 @@ class InvoiceDatabase {
 
   Future<void> _seedHSNCodes(Database db) async {
     final hsnCodes = [
-      // Vegetables (0% GST)
       {'hsn': '0701', 'product': 'Potato (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
       {'hsn': '0702', 'product': 'Tomato (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
       {'hsn': '0703', 'product': 'Onion (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
@@ -194,8 +184,6 @@ class InvoiceDatabase {
       {'hsn': '0707', 'product': 'Cucumber/Gherkin (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
       {'hsn': '0708', 'product': 'Leguminous Vegetables (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
       {'hsn': '0709', 'product': 'Other Vegetables (Fresh)', 'category': 'Vegetables', 'gst': 0.0},
-
-      // Cereals (5% GST)
       {'hsn': '1001', 'product': 'Wheat', 'category': 'Cereals', 'gst': 5.0},
       {'hsn': '1002', 'product': 'Rye', 'category': 'Cereals', 'gst': 5.0},
       {'hsn': '1003', 'product': 'Barley', 'category': 'Cereals', 'gst': 5.0},
@@ -204,35 +192,23 @@ class InvoiceDatabase {
       {'hsn': '1006', 'product': 'Rice', 'category': 'Cereals', 'gst': 5.0},
       {'hsn': '1007', 'product': 'Grain Sorghum', 'category': 'Cereals', 'gst': 5.0},
       {'hsn': '1008', 'product': 'Buckwheat/Millet', 'category': 'Cereals', 'gst': 5.0},
-
-      // Pulses (0% GST)
       {'hsn': '0713', 'product': 'Dried Leguminous Vegetables', 'category': 'Pulses', 'gst': 0.0},
-
-      // Oil Seeds (5% GST)
       {'hsn': '1201', 'product': 'Soya Beans', 'category': 'Oil Seeds', 'gst': 5.0},
       {'hsn': '1204', 'product': 'Linseed', 'category': 'Oil Seeds', 'gst': 5.0},
       {'hsn': '1205', 'product': 'Rape/Mustard Seeds', 'category': 'Oil Seeds', 'gst': 5.0},
       {'hsn': '1206', 'product': 'Sunflower Seeds', 'category': 'Oil Seeds', 'gst': 5.0},
       {'hsn': '1207', 'product': 'Other Oil Seeds', 'category': 'Oil Seeds', 'gst': 5.0},
-
-      // Spices (5% GST)
       {'hsn': '0904', 'product': 'Pepper', 'category': 'Spices', 'gst': 5.0},
       {'hsn': '0906', 'product': 'Cinnamon', 'category': 'Spices', 'gst': 5.0},
       {'hsn': '0907', 'product': 'Cloves', 'category': 'Spices', 'gst': 5.0},
       {'hsn': '0908', 'product': 'Nutmeg/Cardamom', 'category': 'Spices', 'gst': 5.0},
       {'hsn': '0909', 'product': 'Seeds of Anise/Coriander/Cumin', 'category': 'Spices', 'gst': 5.0},
       {'hsn': '0910', 'product': 'Ginger/Turmeric', 'category': 'Spices', 'gst': 5.0},
-
-      // Fertilizers (5% GST)
       {'hsn': '3102', 'product': 'Urea Fertilizer', 'category': 'Fertilizers', 'gst': 5.0},
       {'hsn': '3103', 'product': 'Phosphatic Fertilizer', 'category': 'Fertilizers', 'gst': 5.0},
       {'hsn': '3104', 'product': 'Potassic Fertilizer', 'category': 'Fertilizers', 'gst': 5.0},
       {'hsn': '3105', 'product': 'NPK Fertilizer', 'category': 'Fertilizers', 'gst': 5.0},
-
-      // Pesticides (18% GST)
       {'hsn': '3808', 'product': 'Insecticides/Pesticides', 'category': 'Pesticides', 'gst': 18.0},
-
-      // Seeds (5% GST)
       {'hsn': '1209', 'product': 'Seeds for Sowing', 'category': 'Seeds', 'gst': 5.0},
     ];
 
@@ -246,15 +222,12 @@ class InvoiceDatabase {
     }
   }
 
-  // Invoice CRUD operations
   Future<String> insertInvoice(InvoiceModel invoice) async {
     final db = await database;
 
     await db.transaction((txn) async {
-      // Insert invoice
       await txn.insert('invoices', invoice.toMap());
 
-      // Insert invoice items
       for (final item in invoice.items) {
         await txn.insert('invoice_items', {
           'id': item.id,
@@ -319,7 +292,6 @@ class InvoiceDatabase {
     final db = await database;
 
     await db.transaction((txn) async {
-      // Update invoice
       await txn.update(
         'invoices',
         invoice.toMap(),
@@ -327,14 +299,12 @@ class InvoiceDatabase {
         whereArgs: [invoice.id],
       );
 
-      // Delete old items
       await txn.delete(
         'invoice_items',
         where: 'invoice_id = ?',
         whereArgs: [invoice.id],
       );
 
-      // Insert new items
       for (final item in invoice.items) {
         await txn.insert('invoice_items', {
           'id': item.id,
@@ -366,7 +336,6 @@ class InvoiceDatabase {
     );
   }
 
-  // HSN Codes
   Future<List<Map<String, dynamic>>> getHSNCodes() async {
     final db = await database;
     return await db.query('hsn_codes', orderBy: 'hsn_code ASC');
@@ -382,7 +351,6 @@ class InvoiceDatabase {
     return results.isNotEmpty ? results.first : null;
   }
 
-  // Statistics
   Future<Map<String, dynamic>> getInvoiceStatistics() async {
     final db = await database;
 

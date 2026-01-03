@@ -134,13 +134,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: (_) => Future.delayed(
+        onRefresh: () => Future.delayed(
           const Duration(milliseconds: 500),
           _loadInvoices,
         ),
         child: Column(
           children: [
-            // Search Bar
             Padding(
               padding: const EdgeInsets.all(16),
               child: TextField(
@@ -163,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Filter & Statistics
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -216,7 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 16),
 
-            // Invoice List
             Expanded(
               child: _filteredInvoices.isEmpty
                   ? Center(
@@ -290,7 +287,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -328,7 +324,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // Details Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -414,7 +409,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 12),
 
-              // GST Info
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
@@ -435,7 +429,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 12),
 
-              // Action Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

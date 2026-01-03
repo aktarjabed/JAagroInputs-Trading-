@@ -8,7 +8,6 @@ import 'database_helper.dart';
 class InvoiceService {
   final _db = InvoiceDatabase.instance;
 
-  // Get all invoices
   Future<List<InvoiceModel>> getAllInvoices() async {
     try {
       return await _db.getAllInvoices();
@@ -17,7 +16,6 @@ class InvoiceService {
     }
   }
 
-  // Get invoice by ID
   Future<InvoiceModel?> getInvoice(String id) async {
     try {
       return await _db.getInvoice(id);
@@ -26,31 +24,24 @@ class InvoiceService {
     }
   }
 
-  // Create new invoice
   Future<String> createInvoice(InvoiceModel invoice) async {
     try {
-      // Validate invoice
       _validateInvoice(invoice);
-
       return await _db.insertInvoice(invoice);
     } catch (e) {
       throw Exception('Failed to create invoice: $e');
     }
   }
 
-  // Update existing invoice
   Future<int> updateInvoice(InvoiceModel invoice) async {
     try {
-      // Validate invoice
       _validateInvoice(invoice);
-
       return await _db.updateInvoice(invoice);
     } catch (e) {
       throw Exception('Failed to update invoice: $e');
     }
   }
 
-  // Delete invoice
   Future<int> deleteInvoice(String id) async {
     try {
       return await _db.deleteInvoice(id);
@@ -59,7 +50,6 @@ class InvoiceService {
     }
   }
 
-  // Search invoices
   Future<List<InvoiceModel>> searchInvoices(String query) async {
     try {
       final allInvoices = await getAllInvoices();
@@ -78,7 +68,6 @@ class InvoiceService {
     }
   }
 
-  // Filter invoices by status
   Future<List<InvoiceModel>> filterByStatus(String status) async {
     try {
       final allInvoices = await getAllInvoices();
@@ -91,7 +80,6 @@ class InvoiceService {
     }
   }
 
-  // Get invoice statistics
   Future<Map<String, dynamic>> getInvoiceStatistics() async {
     try {
       return await _db.getInvoiceStatistics();
@@ -100,7 +88,6 @@ class InvoiceService {
     }
   }
 
-  // Get invoices by date range
   Future<List<InvoiceModel>> getInvoicesByDateRange(
     DateTime startDate,
     DateTime endDate,
@@ -117,7 +104,6 @@ class InvoiceService {
     }
   }
 
-  // Get invoices by buyer
   Future<List<InvoiceModel>> getInvoicesByBuyer(String buyerGSTIN) async {
     try {
       final allInvoices = await getAllInvoices();
@@ -128,7 +114,6 @@ class InvoiceService {
     }
   }
 
-  // Get total outstanding amount
   Future<double> getTotalOutstanding() async {
     try {
       final allInvoices = await getAllInvoices();
@@ -141,7 +126,6 @@ class InvoiceService {
     }
   }
 
-  // Get total paid amount
   Future<double> getTotalPaid() async {
     try {
       final allInvoices = await getAllInvoices();
@@ -154,7 +138,6 @@ class InvoiceService {
     }
   }
 
-  // Get invoices count by status
   Future<Map<String, int>> getInvoiceCountByStatus() async {
     try {
       final allInvoices = await getAllInvoices();
@@ -176,14 +159,11 @@ class InvoiceService {
     }
   }
 
-  // Validate invoice
   void _validateInvoice(InvoiceModel invoice) {
-    // Check invoice number
     if (invoice.invoiceNumber.isEmpty) {
       throw Exception('Invoice number is required');
     }
 
-    // Check buyer details
     if (invoice.buyerName.isEmpty) {
       throw Exception('Buyer name is required');
     }
@@ -196,18 +176,15 @@ class InvoiceService {
       throw Exception('Buyer PAN is required');
     }
 
-    // Check line items
     if (invoice.items.isEmpty) {
       throw Exception('At least one line item is required');
     }
 
-    // Check amounts
     if (invoice.grandTotal <= 0) {
       throw Exception('Invoice total must be greater than zero');
     }
   }
 
-  // Duplicate invoice
   Future<InvoiceModel> duplicateInvoice(String invoiceId) async {
     try {
       final original = await getInvoice(invoiceId);
@@ -215,7 +192,6 @@ class InvoiceService {
         throw Exception('Invoice not found');
       }
 
-      // Create new invoice with same details but new ID and number
       final duplicate = InvoiceModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         invoiceNumber: 'INV-${DateTime.now().millisecondsSinceEpoch}',
@@ -258,15 +234,12 @@ class InvoiceService {
     }
   }
 
-  // Export invoices to CSV
   Future<String> exportToCSV(List<InvoiceModel> invoices) async {
     try {
       final buffer = StringBuffer();
 
-      // Header
       buffer.writeln('Invoice Number,Date,Buyer Name,Buyer GSTIN,Amount,Tax,Total,Status');
 
-      // Data
       for (final invoice in invoices) {
         buffer.writeln(
           '${invoice.invoiceNumber},'
@@ -286,7 +259,6 @@ class InvoiceService {
     }
   }
 
-  // Get HSN codes
   Future<List<Map<String, dynamic>>> getHSNCodes() async {
     try {
       return await _db.getHSNCodes();
@@ -295,7 +267,6 @@ class InvoiceService {
     }
   }
 
-  // Get HSN code details
   Future<Map<String, dynamic>?> getHSNCodeDetails(String hsnCode) async {
     try {
       return await _db.getHSNCodeDetails(hsnCode);

@@ -21,7 +21,6 @@ class ThemeManager extends ChangeNotifier {
       _isDarkMode = prefs.getBool(_themeKey) ?? false;
       notifyListeners();
     } catch (e) {
-      // Default to light theme on error
       _isDarkMode = false;
     }
   }
