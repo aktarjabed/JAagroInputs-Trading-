@@ -54,9 +54,10 @@ class PDFHelper {
             pw.SizedBox(height: 4),
             pw.Text('GSTIN: ${Constants.companyGSTIN}', style: const pw.TextStyle(fontSize: 10)),
             pw.Text('PAN: ${Constants.companyPAN}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text(Constants.companyAddress, style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('${Constants.companyCity}, ${Constants.companyState} - ${Constants.companyPincode}',
-                    style: const pw.TextStyle(fontSize: 10)),
+            pw.Text(
+              '${Constants.companyAddress}, ${Constants.companyState} - ${Constants.companyPincode}',
+              style: const pw.TextStyle(fontSize: 10),
+            ),
             pw.Text('Ph: ${Constants.companyPhone}', style: const pw.TextStyle(fontSize: 10)),
           ],
         ),
