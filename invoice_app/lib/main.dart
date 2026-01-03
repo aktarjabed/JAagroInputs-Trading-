@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'utils/theme_manager.dart';
-import 'screens/home_screen.dart';
+import 'widgets/bottom_navigation_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
             theme: ThemeManager.getLightTheme(),
             darkTheme: ThemeManager.getDarkTheme(),
             themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const HomeScreen(),
+            home: const BottomNavigationWrapper(),
           );
         },
       ),

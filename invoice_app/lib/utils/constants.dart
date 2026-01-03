@@ -102,7 +102,8 @@ class Constants {
     'Mixed',
   ];
 
-  // Company Details
+  // DEPRECATED: Use SettingsService to fetch from DB
+  // Keeping as Fallback Defaults
   static const String companyName = 'JA AGRO INPUTS & TRADING';
   static const String companyGSTIN = '18CCFPB3144R1Z5';
   static const String companyPAN = 'CCFPB3144R';
@@ -113,14 +114,14 @@ class Constants {
   static const String companyPhone = '8133878179';
   static const String companyEmail = 'jaagro@example.com';
 
-  // Bank Details
+  // Bank Details (Defaults)
   static const String bankName = 'State Bank of India';
   static const String bankAccountNumber = '36893269388';
   static const String bankIFSC = 'SBIN0001803';
 
   // App Settings
   static const String appName = 'JA Agro Invoice';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '2.0.0 (Enterprise)';
   static const String defaultCurrency = '₹';
 
   // Date Formats

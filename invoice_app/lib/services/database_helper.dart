@@ -5,6 +5,9 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/invoice_model.dart';
+import '../models/customer_model.dart';
+import '../models/product_model.dart';
+import '../models/company_settings_model.dart';
 
 class InvoiceDatabase {
   static final InvoiceDatabase instance = InvoiceDatabase._init();
@@ -168,6 +171,24 @@ class InvoiceDatabase {
           outstanding_balance REAL NOT NULL DEFAULT 0,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
+        )
+      ''');
+
+       await db.execute('''
+        CREATE TABLE IF NOT EXISTS company_settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          company_name TEXT NOT NULL,
+          gstin TEXT NOT NULL,
+          pan TEXT NOT NULL,
+          address TEXT NOT NULL,
+          city TEXT NOT NULL,
+          state TEXT NOT NULL,
+          pincode TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT NOT NULL,
+          bank_name TEXT NOT NULL,
+          bank_account_number TEXT NOT NULL,
+          bank_ifsc TEXT NOT NULL
         )
       ''');
     }
