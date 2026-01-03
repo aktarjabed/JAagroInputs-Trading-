@@ -84,7 +84,7 @@ class _InvoiceSearchScreenState extends State<InvoiceSearchScreen> {
             if (errorMessage != null)
               Text(
                 errorMessage!,
-                style: const TextStyle(color: Colors.red),
+                style: const TextStyle(color: Colors.red, fontSize: 16),
               ),
             if (invoice != null)
               Expanded(

@@ -29,6 +29,11 @@ class _AllInvoicesScreenState extends State<AllInvoicesScreen> {
       });
     } catch (e) {
       setState(() => isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading invoices: $e')),
+        );
+      }
     }
   }
 
@@ -43,7 +48,12 @@ class _AllInvoicesScreenState extends State<AllInvoicesScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : invoices.isEmpty
-              ? const Center(child: Text('No invoices found'))
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Text('No invoices found'),
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: loadInvoices,
                   child: ListView.builder(

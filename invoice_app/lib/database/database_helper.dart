@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -29,7 +30,7 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE invoices ADD COLUMN gstin TEXT');
+      await db.execute('ALTER TABLE invoices ADD COLUMN customer_gstin TEXT');
       await db.execute('ALTER TABLE invoices ADD COLUMN pdf_path TEXT');
     }
   }
