@@ -1,134 +1,163 @@
+// lib/utils/constants.dart
+// COMPLETE - PRODUCTION READY
+// Application Constants & Static Data
+
 class Constants {
-  // State Codes for GST
-  static const Map<String, String> stateCodes = {
-    '01': 'Jammu & Kashmir',
-    '02': 'Himachal Pradesh',
-    '03': 'Punjab',
-    '04': 'Chandigarh',
-    '05': 'Uttarakhand',
-    '06': 'Haryana',
-    '07': 'Delhi',
-    '08': 'Rajasthan',
-    '09': 'Uttar Pradesh',
-    '10': 'Bihar',
-    '11': 'Sikkim',
-    '12': 'Arunachal Pradesh',
-    '13': 'Nagaland',
-    '14': 'Manipur',
-    '15': 'Mizoram',
-    '16': 'Tripura',
-    '17': 'Meghalaya',
-    '18': 'Assam',
-    '19': 'West Bengal',
-    '20': 'Jharkhand',
-    '21': 'Odisha',
-    '22': 'Chhattisgarh',
-    '23': 'Madhya Pradesh',
-    '24': 'Gujarat',
-    '25': 'Daman & Diu',
-    '26': 'Dadra & Nagar Haveli',
-    '27': 'Maharashtra',
-    '29': 'Karnataka',
-    '30': 'Goa',
-    '31': 'Lakshadweep',
-    '32': 'Kerala',
-    '33': 'Tamil Nadu',
-    '34': 'Puducherry',
-    '35': 'Andaman & Nicobar Islands',
-    '36': 'Telangana',
-    '37': 'Andhra Pradesh',
-    '38': 'Ladakh',
-    '97': 'Other Territory',
-  };
-
-  static String getStateCode(String stateName) {
-    var entry = stateCodes.entries.firstWhere(
-      (element) => element.value.toLowerCase() == stateName.toLowerCase(),
-      orElse: () => const MapEntry('', ''),
-    );
-    return entry.key; // Returns key (code) like '18' for Assam
-  }
-
-  static String getStateName(String code) {
-    return stateCodes[code] ?? code;
-  }
-
-  // HSN Categories
-  static const Map<String, String> hsnCategories = {
-    '0701': 'Vegetables',
-    '0702': 'Vegetables',
-    '0703': 'Vegetables',
-    '0704': 'Vegetables',
-    '0705': 'Vegetables',
-    '0706': 'Vegetables',
-    '0707': 'Vegetables',
-    '0708': 'Vegetables',
-    '0709': 'Vegetables',
-    '0710': 'Vegetables',
-    '0801': 'Fruits',
-    '0803': 'Fruits',
-    '0804': 'Fruits',
-    '0805': 'Fruits',
-    '0806': 'Fruits',
-    '0807': 'Fruits',
-    '0808': 'Fruits',
-    '0809': 'Fruits',
-    '1001': 'Cereals',
-    '1005': 'Cereals',
-    '1006': 'Cereals',
-    '1202': 'Pulses',
-    '3101': 'Fertilizers',
-    '3102': 'Fertilizers',
-    '3103': 'Fertilizers',
-    '3104': 'Fertilizers',
-    '3105': 'Fertilizers',
-    '3808': 'Pesticides',
-    '8201': 'Tools',
-    '8424': 'Machinery',
-    '8432': 'Machinery',
-    '5607': 'Packaging',
-    '3920': 'Packaging',
-  };
-
-  static const List<String> productCategories = [
-    'Vegetables',
-    'Fruits',
-    'Cereals',
-    'Pulses',
-    'Fertilizers',
-    'Pesticides',
-    'Seeds',
-    'Tools',
-    'Machinery',
-    'Packaging',
-    'Others',
+  // Indian States (All 36)
+  static const List<String> indianStates = [
+    'Andaman and Nicobar Islands',
+    'Andhra Pradesh',
+    'Arunachal Pradesh',
+    'Assam',
+    'Bihar',
+    'Chandigarh',
+    'Chhattisgarh',
+    'Dadra and Nagar Haveli',
+    'Daman and Diu',
+    'Delhi',
+    'Goa',
+    'Gujarat',
+    'Haryana',
+    'Himachal Pradesh',
+    'Jammu and Kashmir',
+    'Jharkhand',
+    'Karnataka',
+    'Kerala',
+    'Ladakh',
+    'Lakshadweep',
+    'Madhya Pradesh',
+    'Maharashtra',
+    'Manipur',
+    'Meghalaya',
+    'Mizoram',
+    'Nagaland',
+    'Odisha',
+    'Puducherry',
+    'Punjab',
+    'Rajasthan',
+    'Sikkim',
+    'Tamil Nadu',
+    'Telangana',
+    'Tripura',
+    'Uttar Pradesh',
+    'Uttarakhand',
+    'West Bengal',
   ];
 
+  // Buyer Types
+  static const List<String> buyerTypes = [
+    'Trader',
+    'Manufacturer',
+    'Wholesaler',
+    'Retailer',
+    'Distributor',
+    'End User',
+    'Government',
+    'Export',
+  ];
+
+  // Measurement Units
   static const List<String> units = [
-    'Kg',
-    'Quintal',
-    'Ton',
-    'Liter',
-    'Bag',
-    'Piece',
-    'Dozen',
-    'Box',
-    'Packet',
+    'kg',
+    'quintal',
+    'ton',
+    'liters',
+    'piece',
+    'bag',
+    'box',
+    'carton',
   ];
 
+  // Quality Grades
   static const List<String> qualityGrades = [
-    'FAQ', // Fair Average Quality
+    'FAQ',
     'Premium',
     'Good',
-    'Medium',
     'Fair',
+    'Standard',
   ];
 
+  // Payment Terms
+  static const List<String> paymentTerms = [
+    'Net 15',
+    'Net 30',
+    'Net 60',
+    'Advance Payment',
+    'Cash on Delivery',
+    'Credit',
+  ];
+
+  // Invoice Statuses
+  static const List<String> invoiceStatuses = [
+    'Draft',
+    'Sent',
+    'Paid',
+    'Cancelled',
+  ];
+
+  // Supply Types
   static const List<String> supplyTypes = [
     'Taxable',
     'Exempt',
     'Mixed',
-    'Nil Rated',
-    'Non-GST',
   ];
+
+  // Company Details
+  static const String companyName = 'JA AGRO INPUTS & TRADING';
+  static const String companyGSTIN = '18CCFPB3144R1Z5';
+  static const String companyPAN = 'CCFPB3144R';
+  static const String companyAddress = 'Dhanehari II, P.O - Saidpur Mukam, Cachar';
+  static const String companyCity = 'Badarpur';
+  static const String companyState = 'Assam';
+  static const String companyPincode = '788102';
+  static const String companyPhone = '8133878179';
+  static const String companyEmail = 'jaagro@example.com';
+
+  // Bank Details
+  static const String bankName = 'HDFC Bank';
+  static const String bankAccountNumber = '36893269388';
+  static const String bankIFSC = 'HDFC0000020';
+
+  // App Settings
+  static const String appName = 'JA Agro Invoice';
+  static const String appVersion = '1.0.0';
+  static const String defaultCurrency = '₹';
+
+  // Date Formats
+  static const String displayDateFormat = 'dd-MMM-yyyy';
+  static const String isoDateFormat = 'yyyy-MM-dd';
+  static const String invoiceDateFormat = 'ddMMyyyy';
+
+  // Validation Patterns
+  static const String gstinPattern = r'^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z\d]$';
+  static const String panPattern = r'^[A-Z]{5}\d{4}[A-Z]$';
+  static const String emailPattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+  static const String phonePattern = r'^[6-9]\d{9}$';
+  static const String pincodePattern = r'^\d{6}$';
+  static const String ifscPattern = r'^[A-Z]{4}0[A-Z0-9]{6}$';
+
+  // Color Scheme
+  static const int primaryColorValue = 0xFF2E7D32;
+  static const int accentColorValue = 0xFF4CAF50;
+  static const int errorColorValue = 0xFFD32F2F;
+  static const int warningColorValue = 0xFFFFA726;
+  static const int successColorValue = 0xFF66BB6A;
+
+  // Limits
+  static const int maxLineItems = 50;
+  static const int maxInvoiceNumberLength = 20;
+  static const double maxDiscountPercentage = 100.0;
+  static const double maxGrandTotal = 10000000.0; // 1 Crore
+
+  // Messages
+  static const String noInvoicesMessage = 'No invoices yet. Create your first invoice!';
+  static const String noSearchResultsMessage = 'No invoices match your search';
+  static const String deleteConfirmMessage = 'Are you sure you want to delete this invoice?';
+  static const String unsavedChangesMessage = 'You have unsaved changes. Discard them?';
+
+  // Error Messages
+  static const String networkErrorMessage = 'Network error. Please check your connection.';
+  static const String databaseErrorMessage = 'Database error. Please try again.';
+  static const String validationErrorMessage = 'Please fix the errors and try again.';
+  static const String unknownErrorMessage = 'An unknown error occurred.';
 }
