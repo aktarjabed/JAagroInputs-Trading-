@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../utils/number_to_words_converter.dart';
 import '../models/invoice_model.dart';
 import '../models/company_settings_model.dart';
 import '../services/settings_service.dart';
@@ -221,14 +222,24 @@ class PDFHelper {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Container(
-          padding: const pw.EdgeInsets.all(8),
+          padding: const pw.EdgeInsets.all(10),
           decoration: pw.BoxDecoration(
-            color: PdfColors.grey200,
+            border: pw.Border.all(color: PdfColors.grey400),
+            color: PdfColors.grey100,
             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
           ),
-          child: pw.Text(
-            'Amount in Words: ${invoice.amountInWords}',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Amount in Words (Rounded):',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+              ),
+              pw.Text(
+                NumberToWordsConverter.convertToIndianWords(invoice.grandTotal),
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+            ],
           ),
         ),
         pw.SizedBox(height: 16),
@@ -236,14 +247,22 @@ class PDFHelper {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Expanded(
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text('Bank Details:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                  pw.Text('Bank: ${settings.bankName}', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('A/C No: ${settings.bankAccountNumber}', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('IFSC: ${settings.bankIFSC}', style: const pw.TextStyle(fontSize: 9)),
-                ],
+              child: pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Bank Details:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                    pw.Text('Account Name: JA Agro Inputs & Trading', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text('Bank: State Bank of India', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text('A/C No: 36893269388', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text('IFSC: SBIN0001803', style: const pw.TextStyle(fontSize: 9)),
+                  ],
+                ),
               ),
             ),
             pw.Expanded(
