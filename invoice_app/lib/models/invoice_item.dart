@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class InvoiceItem {
   String description;
@@ -23,22 +23,22 @@ class InvoiceItem {
   double get total => amount + gstAmount;
 
   Map<String, dynamic> toJson() => {
-    'description': description,
-    'hsnCode': hsnCode,
-    'quantity': quantity,
-    'unit': unit,
-    'rate': rate,
-    'gstRate': gstRate,
-  };
+        'description': description,
+        'hsnCode': hsnCode,
+        'quantity': quantity,
+        'unit': unit,
+        'rate': rate,
+        'gstRate': gstRate,
+      };
 
   factory InvoiceItem.fromJson(Map<String, dynamic> json) => InvoiceItem(
-    description: json['description'],
-    hsnCode: json['hsnCode'],
-    quantity: (json['quantity'] as num).toDouble(),
-    unit: json['unit'],
-    rate: (json['rate'] as num).toDouble(),
-    gstRate: (json['gstRate'] as num).toDouble(),
-  );
+        description: json['description'],
+        hsnCode: json['hsnCode'],
+        quantity: (json['quantity'] as num).toDouble(),
+        unit: json['unit'],
+        rate: (json['rate'] as num).toDouble(),
+        gstRate: (json['gstRate'] as num).toDouble(),
+      );
 
   static List<InvoiceItem> parseItems(String itemsJson) {
     try {
@@ -48,5 +48,23 @@ class InvoiceItem {
       debugPrint('Error parsing items: $e');
       return [];
     }
+  }
+
+  InvoiceItem copyWith({
+    String? description,
+    String? hsnCode,
+    double? quantity,
+    String? unit,
+    double? rate,
+    double? gstRate,
+  }) {
+    return InvoiceItem(
+      description: description ?? this.description,
+      hsnCode: hsnCode ?? this.hsnCode,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      rate: rate ?? this.rate,
+      gstRate: gstRate ?? this.gstRate,
+    );
   }
 }
